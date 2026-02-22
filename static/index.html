@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>План ресторана</title>
+<style>
+    body{margin:50;font-family:Arial;background:#fafafa}
+    #plan{width:70%;height:90vh;background:#ffe;border:5px solid #ccc}
+    .tbl{cursor:pointer;transition:fill .2s}
+    .free{fill:#4caf50}
+    .reserved{fill:#ff9800}
+    .busy{fill:#f44336}
+    #tip{position:fixed;bottom:10px;left:10px;background:#0008;color:#fff;padding:6px 12px;border-radius:4px}
+</style>
+</head>
+<body>
+<h2 style="margin:10px">Клик по столику – бронировать / отменить</h2>
+<svg id="plan"></svg>
+<div id="tip">Загрузка…</div>
+
+<script>
+const API = "";  // корень сайта
+const svg = document.getElementById('plan');
+const tip = document.getElementById('tip');
+let tables = [];
+
+async function load(){
+  const r = await fetch(API+"/api/tables-map");
+  tables = await r.json();
+  draw();
+}
+load();
+
+function draw(){
+  svg.innerHTML="";
+  tables.forEach(t=>{
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x",t.x); r.setAttribute("y",t.y);
+    r.setAttribute("width",60); r.setAttribute("height",40); r.setAttribute("rx",6);
+    r.classList.add("tbl",t.status);
+    const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+    txt.setAttribute("x",t.x+30); txt.setAttribute("y",t.y+25);
+    txt.setAttribute("text-anchor","middle"); txt.setAttribute("fill","#fff");
+    txt.textContent = t.places;
+    g.append(r,txt);
+    g.onclick = () => clickTable(t);
+    svg.appendChild(g);
+  });
+}
+
+async function clickTable(t){
+  if (t.status !== "free"){
+    if(!confirm("Снять бронь?")) return;
+    // ищем id активной брони (упрощённо – первая попавшаяся)
+    const rlist = await (await fetch(API+`/tables/${t.id}/reservations`)).json();
+    const active = rlist.find(r=> new Date(r.start_time) <= new Date() && new Date(r.end_time) >= new Date());
+    if(active){
+      await fetch(API+`/reservations/${active.id}`,{method:"DELETE"});
+      load();  // обновить карту
+    }
+    return;
+  }
+  // новая бронь
+  const name = prompt("Имя гостя:");
+  if(!name) return;
+  const mins = prompt("Длительность (мин):","120");
+  if(!mins) return;
+  const start = new Date();
+  const end = new Date(Date.now() + mins*60000);
+  await fetch(API+`/tables/${t.id}/reservations`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+      guest_name: name
+    })
+  });
+  load();
+}
+
+// живые обновления
+const ws = new WebSocket(`ws://${location.host}/ws`);
+ws.onmessage = e => { load(); };
+</script>
+</body>
+</html>
