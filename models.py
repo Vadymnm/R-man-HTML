@@ -7,8 +7,6 @@ import datetime
 
 class Table(Base):
     __tablename__ = 'tables'
-
-
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     seats = Column(Integer, nullable=False)
@@ -17,7 +15,6 @@ class Table(Base):
     y = Column(Integer, default=0)
 
     reservations = relationship("Reservation", back_populates="table")
-
 
 class Reservation(Base):
     __tablename__ = 'reservations'

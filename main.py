@@ -130,9 +130,7 @@ def delete_reservations(table_name, db: Session = Depends(get_db)):
         print("Объект не найден.")
 
 
-
 #   #################################################################
-
 
 # --------- 1. Отдаём статику (html/css/js) ----------
 app.mount("/static", StaticFiles(directory="static"), name="static")
