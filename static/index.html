@@ -39,10 +39,10 @@ function draw(){
     const g = document.createElementNS("http://www.w3.org/2000/svg","g");
     const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
     r.setAttribute("x",t.x); r.setAttribute("y",t.y);
-    r.setAttribute("width",60); r.setAttribute("height",40); r.setAttribute("rx",6);
+    r.setAttribute("width",80); r.setAttribute("height",40); r.setAttribute("rx",6);
     r.classList.add("tbl",t.status);
     const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
-    txt.setAttribute("x",t.x+30); txt.setAttribute("y",t.y+25);
+    txt.setAttribute("x",t.x+40); txt.setAttribute("y",t.y+25);
     txt.setAttribute("text-anchor","middle"); txt.setAttribute("fill","#fff");
     txt.textContent = t.places;
     g.append(r,txt);
@@ -64,14 +64,14 @@ async function clickTable(t){
     return;
   }
   // новая бронь
-  const name = prompt("Имя гостя:");
+  const name = prompt("Закзчик:");
   if(!name) return;
-  const mins = prompt("Длительность (мин):","120");
+  const mins = prompt("Длительность (мин):","100");
   if(!mins) return;
   const start = new Date();
   const end = new Date(Date.now() + mins*60000);
   await fetch(API+`/tables/${t.id}/reservations`,{
-    method:"POST",
+    method:"PUT",
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({
       start_time: start.toISOString(),
@@ -88,3 +88,4 @@ ws.onmessage = e => { load(); };
 </script>
 </body>
 </html>
+

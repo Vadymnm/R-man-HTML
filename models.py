@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from database import Base
 import datetime
 
+from pydantic import BaseModel
+
 '''Определяем модели таблиц базы данных'''
 
 class Table(Base):
@@ -29,3 +31,5 @@ class Reservation(Base):
 
     table = relationship("Table", back_populates="reservations")
 
+class ReservationCreate(BaseModel):
+    status: str          # "available", "booked", "reserved"
